@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/playlist.dart';
 import '../services/library_service.dart';
+import '../widgets/glass_scaffold.dart';
 import '../widgets/song_detail_sheet.dart';
 import '../widgets/song_tile.dart';
 
@@ -17,26 +18,26 @@ class PlaylistScreen extends StatelessWidget {
     final library = context.watch<LibraryService>();
     final songs = library.songsInPlaylist(playlist);
 
-    return Scaffold(
+    return GlassScaffold(
       appBar: AppBar(title: Text(playlist.name)),
-      body: songs.isEmpty
-          ? const Center(child: Text('No songs in this playlist yet.'))
-          : ListView.builder(
-              itemCount: songs.length,
-              itemBuilder: (_, i) => SongTile(
-                song: songs[i],
-                queue: songs,
-                index: i,
-                onMore: () => showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      body: SafeArea(
+        child: songs.isEmpty
+            ? const Center(child: Text('No songs in this playlist yet.'))
+            : ListView.builder(
+                itemCount: songs.length,
+                itemBuilder: (_, i) => SongTile(
+                  song: songs[i],
+                  queue: songs,
+                  index: i,
+                  onMore: () => showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => SongDetailSheet(song: songs[i]),
                   ),
-                  builder: (_) => SongDetailSheet(song: songs[i]),
                 ),
               ),
-            ),
+      ),
     );
   }
 }

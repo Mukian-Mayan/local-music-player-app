@@ -5,6 +5,7 @@ import 'screens/home_screen.dart';
 import 'services/library_service.dart';
 import 'services/player_service.dart';
 import 'services/settings_service.dart';
+import 'theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,29 +61,9 @@ class MusicPlayerApp extends StatelessWidget {
       title: 'Music Player',
       debugShowCheckedModeBanner: false,
       themeMode: settings.themeMode,
-      theme: _lightTheme,
-      darkTheme: _darkTheme,
+      theme: buildTheme(Brightness.light),
+      darkTheme: buildTheme(Brightness.dark),
       home: const HomeScreen(),
     );
   }
 }
-
-final _lightTheme = ThemeData(
-  useMaterial3: true,
-  brightness: Brightness.light,
-  scaffoldBackgroundColor: const Color(0xFFF6F4F1),
-  colorScheme: ColorScheme.fromSeed(
-    seedColor: const Color(0xFF1B1B1F),
-    brightness: Brightness.light,
-  ),
-);
-
-final _darkTheme = ThemeData(
-  useMaterial3: true,
-  brightness: Brightness.dark,
-  scaffoldBackgroundColor: const Color(0xFF121214),
-  colorScheme: ColorScheme.fromSeed(
-    seedColor: const Color(0xFFEDEBE7),
-    brightness: Brightness.dark,
-  ),
-);

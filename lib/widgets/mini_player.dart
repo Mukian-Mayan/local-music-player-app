@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 
 import '../screens/now_playing_screen.dart';
 import '../services/player_service.dart';
+import '../theme.dart';
+import 'glass_panel.dart';
 
-/// Floating bar shown above the tab content whenever a song is loaded.
-/// Tapping it opens the full Now Playing screen.
+/// Floating glass bar shown above the bottom nav whenever a song is
+/// loaded. Tapping it opens the full Now Playing screen.
 class MiniPlayer extends StatelessWidget {
   const MiniPlayer({super.key});
 
@@ -14,17 +16,16 @@ class MiniPlayer extends StatelessWidget {
     final player = context.watch<PlayerService>();
     final song = player.current;
     if (song == null) return const SizedBox.shrink();
-    final scheme = Theme.of(context).colorScheme;
 
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: GlassPanel(
+        borderRadius: BorderRadius.circular(18),
+        padding: EdgeInsets.zero,
         child: Material(
-          color: scheme.surfaceContainerHigh,
-          borderRadius: BorderRadius.circular(18),
-          clipBehavior: Clip.antiAlias,
+          color: Colors.transparent,
           child: InkWell(
+            borderRadius: BorderRadius.circular(18),
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
@@ -40,9 +41,15 @@ class MiniPlayer extends StatelessWidget {
                   builder: (_, snap) {
                     final pos = snap.data?.inMilliseconds ?? 0;
                     final dur = player.duration?.inMilliseconds ?? 0;
-                    return LinearProgressIndicator(
-                      minHeight: 2,
-                      value: dur == 0 ? 0 : (pos / dur).clamp(0.0, 1.0),
+                    return ClipRRect(
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(18)),
+                      child: LinearProgressIndicator(
+                        minHeight: 2,
+                        value: dur == 0 ? 0 : (pos / dur).clamp(0.0, 1.0),
+                        backgroundColor: Colors.transparent,
+                        color: AppColors.accent,
+                      ),
                     );
                   },
                 ),
@@ -55,9 +62,9 @@ class MiniPlayer extends StatelessWidget {
                       child: song.artwork != null
                           ? Image.memory(song.artwork!, fit: BoxFit.cover)
                           : Container(
-                              color: scheme.primaryContainer,
-                              child: Icon(Icons.music_note,
-                                  color: scheme.onPrimaryContainer, size: 20),
+                              color: AppColors.accent.withValues(alpha: 0.16),
+                              child: const Icon(Icons.music_note,
+                                  color: AppColors.accent, size: 20),
                             ),
                     ),
                   ),

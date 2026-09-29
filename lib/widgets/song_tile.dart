@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/song.dart';
 import '../services/library_service.dart';
 import '../services/player_service.dart';
+import '../theme.dart';
 
 /// One row in a song list: artwork, title/artist, duration, favorite
 /// toggle and a "more" button that opens the details sheet. Swipe to
@@ -55,7 +56,7 @@ class SongTile extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            color: isCurrent ? scheme.primary : null,
+            color: isCurrent ? AppColors.accent : null,
             fontWeight: isCurrent ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
@@ -77,7 +78,7 @@ class SongTile extends StatelessWidget {
                     : Icons.favorite_border,
                 size: 20,
               ),
-              color: library.isFavorite(song) ? Colors.redAccent : null,
+              color: library.isFavorite(song) ? AppColors.accent : null,
               onPressed: () => library.toggleFavorite(song),
             ),
             IconButton(
@@ -98,7 +99,6 @@ class _Artwork extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: SizedBox(
@@ -107,10 +107,10 @@ class _Artwork extends StatelessWidget {
         child: song.artwork != null
             ? Image.memory(song.artwork!, fit: BoxFit.cover)
             : Container(
-                color: scheme.primaryContainer,
+                color: AppColors.accent.withValues(alpha: 0.16),
                 child: Icon(
                   isCurrent ? Icons.equalizer : Icons.music_note,
-                  color: scheme.onPrimaryContainer,
+                  color: AppColors.accent,
                   size: 22,
                 ),
               ),

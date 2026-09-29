@@ -6,7 +6,11 @@ import '../models/song.dart';
 import '../screens/playlist_screen.dart';
 import '../services/library_service.dart';
 import '../services/settings_service.dart';
+import '../theme.dart';
 import '../widgets/create_playlist_sheet.dart';
+import '../widgets/glass_bottom_nav.dart';
+import '../widgets/glass_panel.dart';
+import '../widgets/glass_scaffold.dart';
 import '../widgets/mini_player.dart';
 import '../widgets/song_detail_sheet.dart';
 import '../widgets/song_tile.dart';
@@ -19,6 +23,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int _tabIndex = 0;
+
   Future<void> _pickFiles(BuildContext context) async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.audio,
@@ -33,9 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (_) => SongDetailSheet(song: song),
     );
   }
@@ -44,9 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (_) => const CreatePlaylistSheet(),
     );
   }
@@ -56,89 +58,105 @@ class _HomeScreenState extends State<HomeScreen> {
     final library = context.watch<LibraryService>();
     final settings = context.watch<SettingsService>();
 
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Your music'),
-          actions: [
-            PopupMenuButton<SortMode>(
-              tooltip: 'Sort',
-              icon: const Icon(Icons.sort),
-              onSelected: library.setSortMode,
-              itemBuilder: (_) => const [
-                PopupMenuItem(value: SortMode.titleAsc, child: Text('By title')),
-                PopupMenuItem(value: SortMode.artistAsc, child: Text('By artist')),
-                PopupMenuItem(
-                    value: SortMode.recentlyAdded, child: Text('Recently added')),
-              ],
-            ),
-            IconButton(
-              tooltip: 'Toggle theme',
-              icon: Icon(settings.themeMode == ThemeMode.dark
-                  ? Icons.light_mode_outlined
-                  : Icons.dark_mode_outlined),
-              onPressed: settings.toggle,
-            ),
-            PopupMenuButton<String>(
-              onSelected: (value) {
-                if (value == 'scan') context.read<LibraryService>().scanLibrary();
-                if (value == 'add') _pickFiles(context);
-              },
-              itemBuilder: (_) => const [
-                PopupMenuItem(value: 'scan', child: Text('Rescan device')),
-                PopupMenuItem(value: 'add', child: Text('Add songs manually')),
-              ],
-            ),
-          ],
-          bottom: const TabBar(tabs: [
-            Tab(text: 'Library'),
-            Tab(text: 'Playlists'),
-            Tab(text: 'Favorites'),
-          ]),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: _createPlaylist,
-          tooltip: 'New playlist',
-          child: const Icon(Icons.playlist_add),
-        ),
-        body: Column(
+    return GlassScaffold(
+      appBar: AppBar(
+        title: const Text('Your music'),
+        actions: [
+          PopupMenuButton<SortMode>(
+            tooltip: 'Sort',
+            icon: const Icon(Icons.sort),
+            onSelected: library.setSortMode,
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: SortMode.titleAsc, child: Text('By title')),
+              PopupMenuItem(value: SortMode.artistAsc, child: Text('By artist')),
+              PopupMenuItem(
+                  value: SortMode.recentlyAdded, child: Text('Recently added')),
+            ],
+          ),
+          IconButton(
+            tooltip: 'Toggle theme',
+            icon: Icon(settings.themeMode == ThemeMode.dark
+                ? Icons.light_mode_outlined
+                : Icons.dark_mode_outlined),
+            onPressed: settings.toggle,
+          ),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'scan') context.read<LibraryService>().scanLibrary();
+              if (value == 'add') _pickFiles(context);
+            },
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: 'scan', child: Text('Rescan device')),
+              PopupMenuItem(value: 'add', child: Text('Add songs manually')),
+            ],
+          ),
+        ],
+      ),
+      floatingActionButton: _tabIndex == 1
+          ? FloatingActionButton(
+              onPressed: _createPlaylist,
+              backgroundColor: AppColors.accent,
+              foregroundColor: Colors.black,
+              child: const Icon(Icons.playlist_add),
+            )
+          : null,
+      body: SafeArea(
+        child: Column(
           children: [
+            const SizedBox(height: 8),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-              child: SearchBar(
-                hintText: 'Search songs, artists, albums',
-                leading: const Icon(Icons.search),
-                trailing: library.isScanning
-                    ? [
-                        const Padding(
-                          padding: EdgeInsets.all(10),
-                          child: SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2)),
-                        )
-                      ]
-                    : null,
-                onChanged: library.setSearchQuery,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: GlassPanel(
+                borderRadius: BorderRadius.circular(20),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Row(
+                  children: [
+                    const Icon(Icons.search, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextField(
+                        onChanged: library.setSearchQuery,
+                        decoration: const InputDecoration(
+                          hintText: 'Search songs, artists, albums',
+                          border: InputBorder.none,
+                          isDense: true,
+                        ),
+                      ),
+                    ),
+                    if (library.isScanning)
+                      const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                  ],
+                ),
               ),
             ),
             if (library.scanError != null)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Text(
                   library.scanError!,
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
               ),
+            const SizedBox(height: 4),
             Expanded(
-              child: TabBarView(children: [
-                _LibraryTab(onSongTap: _openSongDetails),
-                const _PlaylistsTab(),
-                _FavoritesTab(onSongTap: _openSongDetails),
-              ]),
+              child: IndexedStack(
+                index: _tabIndex,
+                children: [
+                  _LibraryTab(onSongTap: _openSongDetails),
+                  const _PlaylistsTab(),
+                  _FavoritesTab(onSongTap: _openSongDetails),
+                ],
+              ),
             ),
             const MiniPlayer(),
+            GlassBottomNav(
+              index: _tabIndex,
+              onChanged: (i) => setState(() => _tabIndex = i),
+            ),
           ],
         ),
       ),
@@ -168,7 +186,7 @@ class _LibraryTab extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: library.scanLibrary,
       child: ListView.builder(
-        padding: const EdgeInsets.only(bottom: 88),
+        padding: const EdgeInsets.only(bottom: 8),
         itemCount: songs.length,
         itemBuilder: (_, i) {
           final song = songs[i];
@@ -199,7 +217,7 @@ class _FavoritesTab extends StatelessWidget {
       );
     }
     return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 88),
+      padding: const EdgeInsets.only(bottom: 8),
       itemCount: songs.length,
       itemBuilder: (_, i) {
         final song = songs[i];
@@ -227,15 +245,15 @@ class _PlaylistsTab extends StatelessWidget {
       );
     }
     return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 88),
+      padding: const EdgeInsets.only(bottom: 8),
       itemCount: library.playlists.length,
       itemBuilder: (_, i) {
         final playlist = library.playlists[i];
         final count = playlist.songPaths.length;
         return ListTile(
           leading: CircleAvatar(
-            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-            child: const Icon(Icons.queue_music),
+            backgroundColor: AppColors.accent.withValues(alpha: 0.18),
+            child: const Icon(Icons.queue_music, color: AppColors.accent),
           ),
           title: Text(playlist.name),
           subtitle: Text('$count song${count == 1 ? '' : 's'}'),

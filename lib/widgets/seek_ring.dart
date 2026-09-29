@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../theme.dart';
 
 /// A circular progress ring, inspired by the arc control in the reference
 /// design, wrapped around whatever [child] is passed in (the play button).
@@ -19,7 +20,7 @@ class SeekRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SizedBox(
       width: size,
       height: size,
@@ -30,8 +31,9 @@ class SeekRing extends StatelessWidget {
             size: Size(size, size),
             painter: _RingPainter(
               progress: progress.clamp(0.0, 1.0),
-              trackColor: scheme.surfaceContainerHighest,
-              progressColor: scheme.primary,
+              trackColor: AppColors.accent
+                  .withValues(alpha: isDark ? 0.15 : 0.12),
+              progressColor: AppColors.accent,
               strokeWidth: strokeWidth,
             ),
           ),

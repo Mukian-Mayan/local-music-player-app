@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../services/library_service.dart';
 import '../services/player_service.dart';
+import '../theme.dart';
+import '../widgets/glass_panel.dart';
+import '../widgets/glass_scaffold.dart';
 import '../widgets/seek_ring.dart';
 
 class NowPlayingScreen extends StatelessWidget {
@@ -19,22 +22,22 @@ class NowPlayingScreen extends StatelessWidget {
     final player = context.watch<PlayerService>();
     final library = context.watch<LibraryService>();
     final song = player.current;
-    final scheme = Theme.of(context).colorScheme;
 
     if (song == null) {
-      return Scaffold(
-          appBar: AppBar(),
-          body: const Center(child: Text('Nothing playing')));
+      return GlassScaffold(
+        appBar: AppBar(),
+        body: const Center(child: Text('Nothing playing')),
+      );
     }
 
-    return Scaffold(
+    return GlassScaffold(
       appBar: AppBar(
         title: const Text('Now playing'),
         actions: [
           IconButton(
             icon: Icon(
                 library.isFavorite(song) ? Icons.favorite : Icons.favorite_border),
-            color: library.isFavorite(song) ? Colors.redAccent : null,
+            color: library.isFavorite(song) ? AppColors.accent : null,
             onPressed: () => library.toggleFavorite(song),
           ),
           PopupMenuButton<Duration?>(
@@ -64,9 +67,18 @@ class NowPlayingScreen extends StatelessWidget {
                   child: song.artwork != null
                       ? Image.memory(song.artwork!, fit: BoxFit.cover)
                       : Container(
-                          color: scheme.primaryContainer,
-                          child: Icon(Icons.music_note,
-                              size: 96, color: scheme.onPrimaryContainer),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                AppColors.accent.withValues(alpha: 0.35),
+                                AppColors.accent.withValues(alpha: 0.08),
+                              ],
+                            ),
+                          ),
+                          child: const Icon(Icons.music_note,
+                              size: 96, color: AppColors.accent),
                         ),
                 ),
               ),
@@ -96,6 +108,10 @@ class NowPlayingScreen extends StatelessWidget {
                         progress: progress,
                         size: 200,
                         child: IconButton.filled(
+                          style: IconButton.styleFrom(
+                            backgroundColor: AppColors.accent,
+                            foregroundColor: Colors.black,
+                          ),
                           iconSize: 40,
                           padding: const EdgeInsets.all(18),
                           icon: Icon(player.isPlaying ? Icons.pause : Icons.play_arrow),
@@ -120,63 +136,81 @@ class NowPlayingScreen extends StatelessWidget {
                 },
               ),
 
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.shuffle),
-                    color: player.shuffle ? scheme.primary : null,
-                    onPressed: player.toggleShuffle,
-                  ),
-                  IconButton(
-                    iconSize: 32,
-                    icon: const Icon(Icons.skip_previous),
-                    onPressed: player.previous,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.replay_10),
-                    onPressed: () => player.seekRelative(const Duration(seconds: -10)),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.forward_10),
-                    onPressed: () => player.seekRelative(const Duration(seconds: 10)),
-                  ),
-                  IconButton(
-                    iconSize: 32,
-                    icon: const Icon(Icons.skip_next),
-                    onPressed: player.next,
-                  ),
-                  IconButton(
-                    icon: Icon(player.repeat == PlayerRepeat.one
-                        ? Icons.repeat_one
-                        : Icons.repeat),
-                    color: player.repeat == PlayerRepeat.off ? null : scheme.primary,
-                    onPressed: player.cycleRepeat,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Icon(player.volume == 0 ? Icons.volume_off : Icons.volume_up),
-                  Expanded(
-                      child: Slider(value: player.volume, onChanged: player.setVolume)),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Speed '),
-                  PopupMenuButton<double>(
-                    tooltip: 'Playback speed',
-                    onSelected: player.setSpeed,
-                    child: Chip(label: Text('${player.speed}x')),
-                    itemBuilder: (_) => [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
-                        .map((s) => PopupMenuItem(value: s, child: Text('${s}x')))
-                        .toList(),
-                  ),
-                ],
+              const SizedBox(height: 16),
+              GlassPanel(
+                borderRadius: BorderRadius.circular(24),
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.shuffle),
+                          color: player.shuffle ? AppColors.accent : null,
+                          onPressed: player.toggleShuffle,
+                        ),
+                        IconButton(
+                          iconSize: 32,
+                          icon: const Icon(Icons.skip_previous),
+                          onPressed: player.previous,
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.replay_10),
+                          onPressed: () =>
+                              player.seekRelative(const Duration(seconds: -10)),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.forward_10),
+                          onPressed: () =>
+                              player.seekRelative(const Duration(seconds: 10)),
+                        ),
+                        IconButton(
+                          iconSize: 32,
+                          icon: const Icon(Icons.skip_next),
+                          onPressed: player.next,
+                        ),
+                        IconButton(
+                          icon: Icon(player.repeat == PlayerRepeat.one
+                              ? Icons.repeat_one
+                              : Icons.repeat),
+                          color: player.repeat == PlayerRepeat.off
+                              ? null
+                              : AppColors.accent,
+                          onPressed: player.cycleRepeat,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const SizedBox(width: 8),
+                        Icon(player.volume == 0
+                            ? Icons.volume_off
+                            : Icons.volume_up),
+                        Expanded(
+                            child: Slider(
+                                value: player.volume, onChanged: player.setVolume)),
+                        const SizedBox(width: 8),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Speed '),
+                        PopupMenuButton<double>(
+                          tooltip: 'Playback speed',
+                          onSelected: player.setSpeed,
+                          child: Chip(label: Text('${player.speed}x')),
+                          itemBuilder: (_) => [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
+                              .map((s) =>
+                                  PopupMenuItem(value: s, child: Text('${s}x')))
+                              .toList(),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 16),
             ],
